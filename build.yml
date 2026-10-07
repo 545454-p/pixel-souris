@@ -1,0 +1,638 @@
+name: Fabriquer l'APK Pixel Souris
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Créer le projet
+        run: |
+          mkdir -p "."
+          cat > "settings.gradle.kts" <<'PIXEL_EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "PhoneMouse"
+          include(":app")
+          PIXEL_EOF
+          mkdir -p "."
+          cat > "build.gradle.kts" <<'PIXEL_EOF'
+          plugins {
+              id("com.android.application") version "8.5.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+          }
+          PIXEL_EOF
+          mkdir -p "."
+          cat > "gradle.properties" <<'PIXEL_EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          PIXEL_EOF
+          mkdir -p "app"
+          cat > "app/build.gradle.kts" <<'PIXEL_EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+
+          android {
+              namespace = "com.example.phonemouse"
+              compileSdk = 34
+
+              defaultConfig {
+                  applicationId = "com.example.phonemouse"
+                  minSdk = 28          // BluetoothHidDevice existe depuis Android 9
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0"
+              }
+
+              buildTypes {
+                  release {
+                      isMinifyEnabled = false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          }
+          PIXEL_EOF
+          mkdir -p "app/src/main"
+          cat > "app/src/main/AndroidManifest.xml" <<'PIXEL_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <!-- Android 11 et moins -->
+              <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+              <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+              <!-- Android 12 et plus -->
+              <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+              <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+              <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+                  android:usesPermissionFlags="neverForLocation" />
+
+              <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+              <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="true" />
+
+              <application
+                  android:allowBackup="false"
+                  android:label="@string/app_name"
+                  android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:screenOrientation="portrait">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          PIXEL_EOF
+          mkdir -p "app/src/main/res/values"
+          cat > "app/src/main/res/values/strings.xml" <<'PIXEL_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Pixel Souris</string>
+          </resources>
+          PIXEL_EOF
+          mkdir -p "app/src/main/res/layout"
+          cat > "app/src/main/res/layout/activity_main.xml" <<'PIXEL_EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="16dp"
+              android:background="#121417">
+
+              <TextView
+                  android:id="@+id/status"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="Démarrage…"
+                  android:textColor="#E8EAED"
+                  android:textSize="16sp"
+                  android:padding="12dp"
+                  android:background="#1F2328" />
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:orientation="horizontal">
+
+                  <Button
+                      android:id="@+id/btnVisible"
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:text="Rendre visible" />
+
+                  <Button
+                      android:id="@+id/btnConnect"
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:layout_marginStart="8dp"
+                      android:text="Connecter un PC" />
+              </LinearLayout>
+
+              <TextView
+                  android:id="@+id/sensLabel"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="16dp"
+                  android:text="Sensibilité"
+                  android:textColor="#9AA0A6" />
+
+              <SeekBar
+                  android:id="@+id/sensitivity"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:max="100"
+                  android:progress="40" />
+
+              <Switch
+                  android:id="@+id/pause"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="8dp"
+                  android:text="Mettre le mouvement en pause"
+                  android:textColor="#E8EAED" />
+
+              <!-- Bande de défilement : glisser le doigt verticalement = molette -->
+              <TextView
+                  android:id="@+id/scrollZone"
+                  android:layout_width="match_parent"
+                  android:layout_height="0dp"
+                  android:layout_weight="1"
+                  android:layout_marginTop="12dp"
+                  android:gravity="center"
+                  android:text="↕  Glissez ici pour faire défiler\n\nMaintenez ici pour figer le curseur\n(et repositionner le téléphone)"
+                  android:textColor="#9AA0A6"
+                  android:background="#1A1D21" />
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="180dp"
+                  android:layout_marginTop="12dp"
+                  android:orientation="horizontal">
+
+                  <Button
+                      android:id="@+id/btnLeft"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:text="Clic\ngauche"
+                      android:textSize="20sp" />
+
+                  <Button
+                      android:id="@+id/btnRight"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:layout_marginStart="8dp"
+                      android:text="Clic\ndroit"
+                      android:textSize="20sp" />
+              </LinearLayout>
+          </LinearLayout>
+          PIXEL_EOF
+          mkdir -p "app/src/main/java/com/example/phonemouse"
+          cat > "app/src/main/java/com/example/phonemouse/BluetoothMouse.kt" <<'PIXEL_EOF'
+          package com.example.phonemouse
+
+          import android.annotation.SuppressLint
+          import android.bluetooth.BluetoothAdapter
+          import android.bluetooth.BluetoothDevice
+          import android.bluetooth.BluetoothHidDevice
+          import android.bluetooth.BluetoothHidDeviceAppSdpSettings
+          import android.bluetooth.BluetoothManager
+          import android.bluetooth.BluetoothProfile
+          import android.content.Context
+          import java.util.concurrent.Executors
+
+          /**
+           * Fait apparaître le téléphone comme une souris Bluetooth standard (profil HID).
+           * L'ordinateur la voit exactement comme une vraie souris : aucun logiciel à installer côté PC.
+           */
+          @SuppressLint("MissingPermission") // les permissions sont demandées dans MainActivity
+          class BluetoothMouse(
+              private val context: Context,
+              private val onStatus: (String) -> Unit,
+              private val onConnectedChanged: (Boolean) -> Unit,
+          ) {
+              companion object {
+                  private const val REPORT_ID = 1
+
+                  /** Descripteur HID d'une souris : 3 boutons, déplacement X/Y relatif, molette. */
+                  private val MOUSE_DESCRIPTOR = byteArrayOf(
+                      0x05, 0x01,                    // Usage Page (Generic Desktop)
+                      0x09, 0x02,                    // Usage (Mouse)
+                      0xA1.toByte(), 0x01,           // Collection (Application)
+                      0x85.toByte(), REPORT_ID.toByte(), //   Report ID (1)
+                      0x09, 0x01,                    //   Usage (Pointer)
+                      0xA1.toByte(), 0x00,           //   Collection (Physical)
+                      0x05, 0x09,                    //     Usage Page (Buttons)
+                      0x19, 0x01,                    //     Usage Minimum (1)
+                      0x29, 0x03,                    //     Usage Maximum (3)
+                      0x15, 0x00,                    //     Logical Minimum (0)
+                      0x25, 0x01,                    //     Logical Maximum (1)
+                      0x95.toByte(), 0x03,           //     Report Count (3)
+                      0x75, 0x01,                    //     Report Size (1)
+                      0x81.toByte(), 0x02,           //     Input (Data, Var, Abs)
+                      0x95.toByte(), 0x01,           //     Report Count (1)
+                      0x75, 0x05,                    //     Report Size (5)
+                      0x81.toByte(), 0x03,           //     Input (Const) – bourrage
+                      0x05, 0x01,                    //     Usage Page (Generic Desktop)
+                      0x09, 0x30,                    //     Usage (X)
+                      0x09, 0x31,                    //     Usage (Y)
+                      0x09, 0x38,                    //     Usage (Wheel)
+                      0x15, 0x81.toByte(),           //     Logical Minimum (-127)
+                      0x25, 0x7F,                    //     Logical Maximum (127)
+                      0x75, 0x08,                    //     Report Size (8)
+                      0x95.toByte(), 0x03,           //     Report Count (3)
+                      0x81.toByte(), 0x06,           //     Input (Data, Var, Rel)
+                      0xC0.toByte(),                 //   End Collection
+                      0xC0.toByte(),                 // End Collection
+                  )
+
+                  const val BUTTON_LEFT = 0x01
+                  const val BUTTON_RIGHT = 0x02
+                  const val BUTTON_MIDDLE = 0x04
+              }
+
+              private val adapter: BluetoothAdapter? =
+                  context.getSystemService(BluetoothManager::class.java)?.adapter
+              private val executor = Executors.newSingleThreadExecutor()
+
+              private var hid: BluetoothHidDevice? = null
+              private var host: BluetoothDevice? = null
+              private var registered = false
+
+              val isConnected get() = host != null
+
+              private val callback = object : BluetoothHidDevice.Callback() {
+                  override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
+                      this@BluetoothMouse.registered = registered
+                      if (registered) {
+                          onStatus("Souris prête. Appairez ou connectez votre ordinateur.")
+                          // Si l'ordinateur est déjà connu, il se reconnecte souvent tout seul.
+                          pluggedDevice?.let { hid?.connect(it) }
+                      } else {
+                          onStatus("Service souris arrêté.")
+                      }
+                  }
+
+                  override fun onConnectionStateChanged(device: BluetoothDevice, state: Int) {
+                      when (state) {
+                          BluetoothProfile.STATE_CONNECTED -> {
+                              host = device
+                              onStatus("Connecté à ${device.name ?: device.address}")
+                              onConnectedChanged(true)
+                          }
+                          BluetoothProfile.STATE_CONNECTING -> onStatus("Connexion à ${device.name ?: device.address}…")
+                          BluetoothProfile.STATE_DISCONNECTED -> {
+                              if (host == device) host = null
+                              onStatus("Déconnecté. En attente de l'ordinateur…")
+                              onConnectedChanged(false)
+                          }
+                      }
+                  }
+              }
+
+              private val serviceListener = object : BluetoothProfile.ServiceListener {
+                  override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
+                      if (profile != BluetoothProfile.HID_DEVICE) return
+                      hid = proxy as BluetoothHidDevice
+                      val sdp = BluetoothHidDeviceAppSdpSettings(
+                          "Pixel Souris", "Téléphone utilisé comme souris", "Android",
+                          BluetoothHidDevice.SUBCLASS1_MOUSE, MOUSE_DESCRIPTOR
+                      )
+                      val ok = hid?.registerApp(sdp, null, null, executor, callback) ?: false
+                      if (!ok) onStatus("Impossible d'activer le mode souris sur ce téléphone.")
+                  }
+
+                  override fun onServiceDisconnected(profile: Int) {
+                      hid = null
+                      host = null
+                      onConnectedChanged(false)
+                  }
+              }
+
+              fun start() {
+                  val a = adapter
+                  if (a == null) { onStatus("Pas de Bluetooth sur cet appareil."); return }
+                  if (!a.isEnabled) { onStatus("Activez le Bluetooth puis relancez l'application."); return }
+                  onStatus("Démarrage du mode souris…")
+                  a.getProfileProxy(context, serviceListener, BluetoothProfile.HID_DEVICE)
+              }
+
+              fun stop() {
+                  host?.let { hid?.disconnect(it) }
+                  if (registered) hid?.unregisterApp()
+                  hid?.let { adapter?.closeProfileProxy(BluetoothProfile.HID_DEVICE, it) }
+                  hid = null
+                  host = null
+                  registered = false
+                  executor.shutdown()
+              }
+
+              fun bondedDevices(): List<BluetoothDevice> = adapter?.bondedDevices?.toList() ?: emptyList()
+
+              fun connect(device: BluetoothDevice) {
+                  if (hid == null || !registered) { onStatus("Le mode souris n'est pas encore prêt."); return }
+                  hid?.connect(device)
+              }
+
+              /** Envoie un rapport souris : boutons enfoncés + déplacement relatif + molette. */
+              fun send(buttons: Int, dx: Int, dy: Int, wheel: Int = 0) {
+                  val h = hid ?: return
+                  val d = host ?: return
+                  val report = byteArrayOf(
+                      buttons.toByte(),
+                      dx.coerceIn(-127, 127).toByte(),
+                      dy.coerceIn(-127, 127).toByte(),
+                      wheel.coerceIn(-127, 127).toByte(),
+                  )
+                  h.sendReport(d, REPORT_ID, report)
+              }
+          }
+          PIXEL_EOF
+          mkdir -p "app/src/main/java/com/example/phonemouse"
+          cat > "app/src/main/java/com/example/phonemouse/MainActivity.kt" <<'PIXEL_EOF'
+          package com.example.phonemouse
+
+          import android.Manifest
+          import android.annotation.SuppressLint
+          import android.app.Activity
+          import android.app.AlertDialog
+          import android.bluetooth.BluetoothAdapter
+          import android.content.Intent
+          import android.content.pm.PackageManager
+          import android.hardware.Sensor
+          import android.hardware.SensorEvent
+          import android.hardware.SensorEventListener
+          import android.hardware.SensorManager
+          import android.os.Build
+          import android.os.Bundle
+          import android.view.MotionEvent
+          import android.view.View
+          import android.view.WindowManager
+          import android.widget.Button
+          import android.widget.SeekBar
+          import android.widget.Switch
+          import android.widget.TextView
+          import kotlin.math.abs
+          import kotlin.math.roundToInt
+
+          @SuppressLint("MissingPermission", "ClickableViewAccessibility", "UseSwitchCompatOrMaterialCode")
+          class MainActivity : Activity(), SensorEventListener {
+
+              companion object {
+                  private const val REQ_PERMS = 1
+                  private const val DEAD_ZONE = 0.02f      // rad/s : ignore les micro-tremblements
+              }
+
+              private lateinit var mouse: BluetoothMouse
+              private lateinit var sensorManager: SensorManager
+              private var gyro: Sensor? = null
+
+              private lateinit var status: TextView
+              private lateinit var pauseSwitch: Switch
+
+              private var buttons = 0                // état des boutons (bitmask)
+              private var sensitivity = 40f          // réglable par le curseur
+              private var frozen = false             // doigt posé sur la zone "embrayage"
+              private var lastTimestamp = 0L
+              private var accX = 0f                  // restes fractionnaires pour un mouvement fluide
+              private var accY = 0f
+              private var lastScrollY = 0f
+              private var scrollAcc = 0f
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  setContentView(R.layout.activity_main)
+                  window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+                  status = findViewById(R.id.status)
+                  pauseSwitch = findViewById(R.id.pause)
+
+                  sensorManager = getSystemService(SensorManager::class.java)
+                  gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+                  if (gyro == null) status.text = "Ce téléphone n'a pas de gyroscope."
+
+                  mouse = BluetoothMouse(
+                      this,
+                      onStatus = { msg -> runOnUiThread { status.text = msg } },
+                      onConnectedChanged = { connected -> if (!connected) buttons = 0 },
+                  )
+
+                  setupButtons()
+                  setupSensitivity()
+                  setupScrollZone()
+
+                  if (hasPermissions()) mouse.start() else requestPermissions(requiredPermissions(), REQ_PERMS)
+              }
+
+              // ---------- Permissions ----------
+
+              private fun requiredPermissions(): Array<String> =
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(
+                      Manifest.permission.BLUETOOTH_CONNECT,
+                      Manifest.permission.BLUETOOTH_ADVERTISE,
+                      Manifest.permission.BLUETOOTH_SCAN,
+                  ) else emptyArray()
+
+              private fun hasPermissions() = requiredPermissions().all {
+                  checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
+              }
+
+              override fun onRequestPermissionsResult(code: Int, perms: Array<out String>, results: IntArray) {
+                  super.onRequestPermissionsResult(code, perms, results)
+                  if (code == REQ_PERMS) {
+                      if (hasPermissions()) mouse.start()
+                      else status.text = "Autorisez « Appareils à proximité » pour utiliser la souris."
+                  }
+              }
+
+              // ---------- Interface ----------
+
+              private fun setupButtons() {
+                  bindMouseButton(findViewById(R.id.btnLeft), BluetoothMouse.BUTTON_LEFT)
+                  bindMouseButton(findViewById(R.id.btnRight), BluetoothMouse.BUTTON_RIGHT)
+
+                  findViewById<Button>(R.id.btnVisible).setOnClickListener {
+                      // Rend le téléphone visible 2 minutes pour l'appairage depuis l'ordinateur
+                      startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+                          .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120))
+                  }
+
+                  findViewById<Button>(R.id.btnConnect).setOnClickListener {
+                      val devices = mouse.bondedDevices()
+                      if (devices.isEmpty()) {
+                          status.text = "Aucun appareil appairé. Touchez « Rendre visible » puis appairez depuis l'ordinateur."
+                          return@setOnClickListener
+                      }
+                      AlertDialog.Builder(this)
+                          .setTitle("Choisir l'ordinateur")
+                          .setItems(devices.map { it.name ?: it.address }.toTypedArray()) { _, i ->
+                              mouse.connect(devices[i])
+                          }
+                          .show()
+                  }
+              }
+
+              /** Appui = bouton enfoncé, relâchement = bouton relâché (permet le glisser-déposer). */
+              private fun bindMouseButton(view: View, mask: Int) {
+                  view.setOnTouchListener { v, e ->
+                      when (e.actionMasked) {
+                          MotionEvent.ACTION_DOWN -> {
+                              v.isPressed = true
+                              v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                              buttons = buttons or mask
+                              mouse.send(buttons, 0, 0)
+                          }
+                          MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                              v.isPressed = false
+                              buttons = buttons and mask.inv()
+                              mouse.send(buttons, 0, 0)
+                          }
+                      }
+                      true
+                  }
+              }
+
+              private fun setupSensitivity() {
+                  val bar = findViewById<SeekBar>(R.id.sensitivity)
+                  sensitivity = 10f + bar.progress
+                  bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                      override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) { sensitivity = 10f + p }
+                      override fun onStartTrackingTouch(s: SeekBar?) {}
+                      override fun onStopTrackingTouch(s: SeekBar?) {}
+                  })
+              }
+
+              /** Doigt posé = curseur figé (comme soulever une souris). Glisser vertical = molette. */
+              private fun setupScrollZone() {
+                  findViewById<View>(R.id.scrollZone).setOnTouchListener { _, e ->
+                      when (e.actionMasked) {
+                          MotionEvent.ACTION_DOWN -> { frozen = true; lastScrollY = e.y; scrollAcc = 0f }
+                          MotionEvent.ACTION_MOVE -> {
+                              scrollAcc += (lastScrollY - e.y) / 40f   // 40 px ≈ un cran de molette
+                              lastScrollY = e.y
+                              val steps = scrollAcc.toInt()
+                              if (steps != 0) {
+                                  mouse.send(buttons, 0, 0, steps)
+                                  scrollAcc -= steps
+                              }
+                          }
+                          MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> frozen = false
+                      }
+                      true
+                  }
+              }
+
+              // ---------- Capteur : mouvement du téléphone -> mouvement du curseur ----------
+
+              override fun onResume() {
+                  super.onResume()
+                  lastTimestamp = 0L
+                  gyro?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+              }
+
+              override fun onPause() {
+                  super.onPause()
+                  sensorManager.unregisterListener(this)
+              }
+
+              override fun onSensorChanged(event: SensorEvent) {
+                  if (lastTimestamp == 0L) { lastTimestamp = event.timestamp; return }
+                  val dt = (event.timestamp - lastTimestamp) / 1_000_000_000f
+                  lastTimestamp = event.timestamp
+                  if (!mouse.isConnected || frozen || pauseSwitch.isChecked) { accX = 0f; accY = 0f; return }
+
+                  // Téléphone tenu en main, écran vers le haut, pointé vers l'ordinateur :
+                  //  - tourner le poignet gauche/droite (axe Z) -> curseur gauche/droite
+                  //  - incliner le haut du téléphone haut/bas (axe X) -> curseur haut/bas
+                  var rotZ = event.values[2]
+                  var rotX = event.values[0]
+                  if (abs(rotZ) < DEAD_ZONE) rotZ = 0f
+                  if (abs(rotX) < DEAD_ZONE) rotX = 0f
+
+                  // Facteur 60 : convertit des rad/s * s en pixels, multiplié par la sensibilité
+                  accX += -rotZ * dt * sensitivity * 60f
+                  accY += -rotX * dt * sensitivity * 60f
+
+                  val dx = accX.roundToInt()
+                  val dy = accY.roundToInt()
+                  if (dx != 0 || dy != 0) {
+                      mouse.send(buttons, dx, dy)
+                      accX -= dx
+                      accY -= dy
+                  }
+              }
+
+              override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+              override fun onDestroy() {
+                  mouse.stop()
+                  super.onDestroy()
+              }
+          }
+          PIXEL_EOF
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Compiler l'application
+        run: |
+          gradle assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk PixelSouris.apk
+
+      - name: Garder une copie
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelSouris
+          path: PixelSouris.apk
+
+      - name: Publier en téléchargement
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Pixel Souris v${{ github.run_number }}
+          body: Téléchargez PixelSouris.apk sur votre téléphone et ouvrez-le pour l'installer.
+          files: PixelSouris.apk
