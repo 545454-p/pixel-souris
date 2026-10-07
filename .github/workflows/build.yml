@@ -124,84 +124,19 @@ jobs:
           mkdir -p "app/src/main/res/layout"
           cat > "app/src/main/res/layout/activity_main.xml" <<'PIXEL_EOF'
           <?xml version="1.0" encoding="utf-8"?>
+          <!-- Disposition « souris » : boutons en haut (sous les doigts), paume en bas. -->
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:padding="16dp"
+              android:padding="8dp"
               android:background="#121417">
 
-              <TextView
-                  android:id="@+id/status"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:text="Démarrage…"
-                  android:textColor="#E8EAED"
-                  android:textSize="16sp"
-                  android:padding="12dp"
-                  android:background="#1F2328" />
-
+              <!-- Boutons : gauche | molette | droit -->
               <LinearLayout
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_marginTop="12dp"
-                  android:orientation="horizontal">
-
-                  <Button
-                      android:id="@+id/btnVisible"
-                      android:layout_width="0dp"
-                      android:layout_height="wrap_content"
-                      android:layout_weight="1"
-                      android:text="Rendre visible" />
-
-                  <Button
-                      android:id="@+id/btnConnect"
-                      android:layout_width="0dp"
-                      android:layout_height="wrap_content"
-                      android:layout_weight="1"
-                      android:layout_marginStart="8dp"
-                      android:text="Connecter un PC" />
-              </LinearLayout>
-
-              <TextView
-                  android:id="@+id/sensLabel"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_marginTop="16dp"
-                  android:text="Sensibilité"
-                  android:textColor="#9AA0A6" />
-
-              <SeekBar
-                  android:id="@+id/sensitivity"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:max="100"
-                  android:progress="40" />
-
-              <Switch
-                  android:id="@+id/pause"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_marginTop="8dp"
-                  android:text="Mettre le mouvement en pause"
-                  android:textColor="#E8EAED" />
-
-              <!-- Bande de défilement : glisser le doigt verticalement = molette -->
-              <TextView
-                  android:id="@+id/scrollZone"
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
-                  android:layout_weight="1"
-                  android:layout_marginTop="12dp"
-                  android:gravity="center"
-                  android:text="↕  Glissez ici pour faire défiler\n\nMaintenez ici pour figer le curseur\n(et repositionner le téléphone)"
-                  android:textColor="#9AA0A6"
-                  android:background="#1A1D21" />
-
-              <LinearLayout
-                  android:layout_width="match_parent"
-                  android:layout_height="180dp"
-                  android:layout_marginTop="12dp"
+                  android:layout_weight="1.1"
                   android:orientation="horizontal">
 
                   <Button
@@ -210,16 +145,123 @@ jobs:
                       android:layout_height="match_parent"
                       android:layout_weight="1"
                       android:text="Clic\ngauche"
-                      android:textSize="20sp" />
+                      android:textSize="18sp" />
+
+                  <TextView
+                      android:id="@+id/scrollZone"
+                      android:layout_width="56dp"
+                      android:layout_height="match_parent"
+                      android:layout_marginStart="6dp"
+                      android:layout_marginEnd="6dp"
+                      android:gravity="center"
+                      android:text="▲\n\nmolette\n\n▼"
+                      android:textColor="#9AA0A6"
+                      android:textSize="12sp"
+                      android:background="#2A2F36" />
 
                   <Button
                       android:id="@+id/btnRight"
                       android:layout_width="0dp"
                       android:layout_height="match_parent"
                       android:layout_weight="1"
-                      android:layout_marginStart="8dp"
                       android:text="Clic\ndroit"
-                      android:textSize="20sp" />
+                      android:textSize="18sp" />
+              </LinearLayout>
+
+              <!-- Zone de la paume : inactive au toucher -->
+              <LinearLayout
+                  android:id="@+id/palm"
+                  android:layout_width="match_parent"
+                  android:layout_height="0dp"
+                  android:layout_weight="1"
+                  android:layout_marginTop="8dp"
+                  android:orientation="vertical"
+                  android:gravity="center"
+                  android:padding="12dp"
+                  android:background="#1A1D21">
+
+                  <TextView
+                      android:id="@+id/status"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:gravity="center"
+                      android:text="Démarrage…"
+                      android:textColor="#E8EAED"
+                      android:textSize="15sp" />
+
+                  <TextView
+                      android:id="@+id/hint"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="8dp"
+                      android:gravity="center"
+                      android:textColor="#9AA0A6"
+                      android:textSize="13sp" />
+              </LinearLayout>
+
+              <Button
+                  android:id="@+id/btnSettings"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="6dp"
+                  android:text="⚙  Réglages" />
+
+              <LinearLayout
+                  android:id="@+id/settingsPanel"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
+
+                  <LinearLayout
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal">
+
+                      <Button
+                          android:id="@+id/btnVisible"
+                          android:layout_width="0dp"
+                          android:layout_height="wrap_content"
+                          android:layout_weight="1"
+                          android:text="Rendre visible" />
+
+                      <Button
+                          android:id="@+id/btnConnect"
+                          android:layout_width="0dp"
+                          android:layout_height="wrap_content"
+                          android:layout_weight="1"
+                          android:layout_marginStart="8dp"
+                          android:text="Connecter un PC" />
+                  </LinearLayout>
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="6dp"
+                      android:text="Vitesse du curseur"
+                      android:textColor="#9AA0A6" />
+
+                  <SeekBar
+                      android:id="@+id/sensitivity"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:max="100"
+                      android:progress="40" />
+
+                  <Switch
+                      android:id="@+id/remoteMode"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="4dp"
+                      android:text="Mode télécommande (tenu en l'air)"
+                      android:textColor="#E8EAED" />
+
+                  <Switch
+                      android:id="@+id/pause"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="4dp"
+                      android:text="Mettre le mouvement en pause"
+                      android:textColor="#E8EAED" />
               </LinearLayout>
           </LinearLayout>
           PIXEL_EOF
@@ -231,10 +273,13 @@ jobs:
           import android.bluetooth.BluetoothAdapter
           import android.bluetooth.BluetoothDevice
           import android.bluetooth.BluetoothHidDevice
+          import android.bluetooth.BluetoothHidDeviceAppQosSettings
           import android.bluetooth.BluetoothHidDeviceAppSdpSettings
           import android.bluetooth.BluetoothManager
           import android.bluetooth.BluetoothProfile
           import android.content.Context
+          import android.os.Handler
+          import android.os.Looper
           import java.util.concurrent.Executors
 
           /**
@@ -292,8 +337,22 @@ jobs:
               private val executor = Executors.newSingleThreadExecutor()
 
               private var hid: BluetoothHidDevice? = null
-              private var host: BluetoothDevice? = null
+              @Volatile private var host: BluetoothDevice? = null
+              @Volatile var sentOk = 0
+              @Volatile var sentRefused = 0
               private var registered = false
+              private var stopping = false
+              private var retries = 0
+              private val mainHandler = Handler(Looper.getMainLooper())
+
+              private val sdp = BluetoothHidDeviceAppSdpSettings(
+                  "Pixel Souris", "Telephone utilise comme souris", "Android",
+                  BluetoothHidDevice.SUBCLASS1_MOUSE, MOUSE_DESCRIPTOR
+              )
+              private val qos = BluetoothHidDeviceAppQosSettings(
+                  BluetoothHidDeviceAppQosSettings.SERVICE_BEST_EFFORT, 800, 9, 0, 11250,
+                  BluetoothHidDeviceAppQosSettings.MAX
+              )
 
               val isConnected get() = host != null
 
@@ -301,11 +360,22 @@ jobs:
                   override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
                       this@BluetoothMouse.registered = registered
                       if (registered) {
+                          retries = 0
                           onStatus("Souris prête. Appairez ou connectez votre ordinateur.")
                           // Si l'ordinateur est déjà connu, il se reconnecte souvent tout seul.
                           pluggedDevice?.let { hid?.connect(it) }
-                      } else {
-                          onStatus("Service souris arrêté.")
+                      } else if (!stopping) {
+                          // Android a retiré le rôle de souris (souvent : une autre appli
+                          // clavier/souris Bluetooth l'a pris). On réessaie quelques fois.
+                          if (retries < 3) {
+                              retries++
+                              onStatus("Mode souris interrompu, nouvelle tentative ($retries/3)…")
+                              mainHandler.postDelayed({ register() }, 1500)
+                          } else {
+                              onStatus("Android refuse le mode souris. Fermez (ou désinstallez) les autres " +
+                                  "applis clavier/souris Bluetooth, désactivez puis réactivez le Bluetooth, " +
+                                  "et relancez Pixel Souris.")
+                          }
                       }
                   }
 
@@ -330,12 +400,7 @@ jobs:
                   override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
                       if (profile != BluetoothProfile.HID_DEVICE) return
                       hid = proxy as BluetoothHidDevice
-                      val sdp = BluetoothHidDeviceAppSdpSettings(
-                          "Pixel Souris", "Téléphone utilisé comme souris", "Android",
-                          BluetoothHidDevice.SUBCLASS1_MOUSE, MOUSE_DESCRIPTOR
-                      )
-                      val ok = hid?.registerApp(sdp, null, null, executor, callback) ?: false
-                      if (!ok) onStatus("Impossible d'activer le mode souris sur ce téléphone.")
+                      register()
                   }
 
                   override fun onServiceDisconnected(profile: Int) {
@@ -343,6 +408,18 @@ jobs:
                       host = null
                       onConnectedChanged(false)
                   }
+              }
+
+              private fun register() {
+                  val h = hid ?: return
+                  if (stopping || registered) return
+                  val ok = h.registerApp(sdp, null, qos, executor, callback)
+                  if (!ok) onStatus("Impossible d'activer le mode souris sur ce téléphone.")
+              }
+
+              /** Appelé au retour dans l'appli : réactive le mode souris s'il a été perdu. */
+              fun ensureRegistered() {
+                  if (hid != null && !registered) { retries = 0; register() }
               }
 
               fun start() {
@@ -354,6 +431,8 @@ jobs:
               }
 
               fun stop() {
+                  stopping = true
+                  mainHandler.removeCallbacksAndMessages(null)
                   host?.let { hid?.disconnect(it) }
                   if (registered) hid?.unregisterApp()
                   hid?.let { adapter?.closeProfileProxy(BluetoothProfile.HID_DEVICE, it) }
@@ -380,7 +459,129 @@ jobs:
                       dy.coerceIn(-127, 127).toByte(),
                       wheel.coerceIn(-127, 127).toByte(),
                   )
-                  h.sendReport(d, REPORT_ID, report)
+                  if (h.sendReport(d, REPORT_ID, report)) sentOk++ else sentRefused++
+              }
+          }
+          PIXEL_EOF
+          mkdir -p "app/src/main/java/com/example/phonemouse"
+          cat > "app/src/main/java/com/example/phonemouse/TableTracker.kt" <<'PIXEL_EOF'
+          package com.example.phonemouse
+
+          import kotlin.math.abs
+          import kotlin.math.hypot
+          import kotlin.math.sign
+
+          /**
+           * « Mode table » : estime le glissement du téléphone posé à plat à partir de l'accéléromètre.
+           *
+           * Un accéléromètre ne mesure qu'une accélération : pour obtenir un déplacement il faut
+           * l'intégrer deux fois, ce qui dérive très vite. On limite la dérive avec :
+           *  - une calibration au repos (on retire la part de gravité due à l'inclinaison de la table) ;
+           *  - une remise à zéro de la vitesse dès que le téléphone est immobile ;
+           *  - pas de demi-tour pendant un même geste (évite le « recul » quand on freine) ;
+           *  - une coupure quand on soulève le téléphone, comme une souris qu'on recentre.
+           */
+          class TableTracker {
+
+              companion object {
+                  private const val CALIBRATION_TIME = 0.6f   // s
+                  private const val STILL_ACCEL = 0.12f       // m/s² : en dessous, on peut être à l'arrêt
+                  private const val STILL_JITTER = 0.05f      // vibration de frottement en dessous = arrêt
+                  private const val STILL_TIME = 0.08f        // s d'immobilité avant remise à zéro
+                  private const val DEAD_BAND = 0.04f         // m/s² ignorés (bruit du capteur)
+                  private const val LIFT_ACCEL = 1.3f         // m/s² vertical = téléphone soulevé
+                  private const val FRICTION = 1.5f           // amortissement léger de la vitesse (1/s)
+              }
+
+              enum class State { CALIBRATING, READY, MOVING, LIFTED }
+
+              var state = State.CALIBRATING
+                  private set
+
+              private var calTime = 0f
+              private var calN = 0
+              private var sumX = 0f; private var sumY = 0f; private var sumZ = 0f
+              private var biasX = 0f; private var biasY = 0f; private var biasZ = 0f
+
+              private var vx = 0f; private var vy = 0f
+              private var signX = 0f; private var signY = 0f
+              private var stillTime = 0f
+              private var jitter = 0f
+              private var lastX = 0f; private var lastY = 0f
+
+              fun reset() {
+                  state = State.CALIBRATING
+                  calTime = 0f; calN = 0; sumX = 0f; sumY = 0f; sumZ = 0f
+                  vx = 0f; vy = 0f; signX = 0f; signY = 0f; stillTime = 0f; jitter = 0f
+              }
+
+              /**
+               * @return déplacement (mètres) sur l'axe X (droite du téléphone) et Y (haut du téléphone).
+               */
+              fun update(ax: Float, ay: Float, az: Float, dt: Float): FloatArray {
+                  val none = floatArrayOf(0f, 0f)
+                  if (dt <= 0f || dt > 0.1f) return none
+
+                  if (state == State.CALIBRATING) {
+                      sumX += ax; sumY += ay; sumZ += az; calN++; calTime += dt
+                      if (calTime >= CALIBRATION_TIME) {
+                          biasX = sumX / calN; biasY = sumY / calN; biasZ = sumZ / calN
+                          lastX = ax; lastY = ay
+                          state = State.READY
+                      }
+                      return none
+                  }
+
+                  val lx = ax - biasX
+                  val ly = ay - biasY
+                  val lz = az - biasZ
+
+                  // Vibration de frottement : variation rapide de l'accélération d'un échantillon à l'autre
+                  val d = hypot(ax - lastX, ay - lastY)
+                  lastX = ax; lastY = ay
+                  jitter += (d - jitter) * 0.15f
+
+                  val mag = hypot(lx, ly)
+                  val looksStill = mag < STILL_ACCEL && jitter < STILL_JITTER
+                  stillTime = if (looksStill) stillTime + dt else 0f
+
+                  // Téléphone soulevé : on fige le curseur jusqu'à ce qu'il soit reposé et immobile
+                  if (abs(lz) > LIFT_ACCEL) {
+                      state = State.LIFTED
+                      vx = 0f; vy = 0f; signX = 0f; signY = 0f
+                      return none
+                  }
+                  if (state == State.LIFTED) {
+                      if (stillTime > 0.25f) state = State.READY
+                      return none
+                  }
+
+                  if (stillTime > STILL_TIME) {
+                      // À l'arrêt : vitesse à zéro et suivi lent de l'inclinaison de la table
+                      vx = 0f; vy = 0f; signX = 0f; signY = 0f
+                      biasX += (ax - biasX) * 0.02f
+                      biasY += (ay - biasY) * 0.02f
+                      biasZ += (az - biasZ) * 0.02f
+                      state = State.READY
+                      return none
+                  }
+
+                  state = State.MOVING
+                  val cx = if (abs(lx) < DEAD_BAND) 0f else lx
+                  val cy = if (abs(ly) < DEAD_BAND) 0f else ly
+
+                  vx += cx * dt
+                  vy += cy * dt
+                  val damp = 1f - FRICTION * dt
+                  vx *= damp; vy *= damp
+
+                  // Pas de demi-tour dans un même geste : le freinage ne doit pas faire reculer le curseur
+                  if (signX == 0f && abs(vx) > 0.005f) signX = sign(vx)
+                  if (signY == 0f && abs(vy) > 0.005f) signY = sign(vy)
+                  if (signX != 0f && sign(vx) != signX) vx = 0f
+                  if (signY != 0f && sign(vy) != signY) vy = 0f
+
+                  return floatArrayOf(vx * dt, vy * dt)
               }
           }
           PIXEL_EOF
@@ -401,6 +602,9 @@ jobs:
           import android.hardware.SensorManager
           import android.os.Build
           import android.os.Bundle
+          import android.os.Handler
+          import android.os.Looper
+          import android.view.HapticFeedbackConstants
           import android.view.MotionEvent
           import android.view.View
           import android.view.WindowManager
@@ -411,26 +615,49 @@ jobs:
           import kotlin.math.abs
           import kotlin.math.roundToInt
 
-          @SuppressLint("MissingPermission", "ClickableViewAccessibility", "UseSwitchCompatOrMaterialCode")
+          @SuppressLint("MissingPermission", "ClickableViewAccessibility", "UseSwitchCompatOrMaterialCode", "SetTextI18n")
           class MainActivity : Activity(), SensorEventListener {
 
               companion object {
                   private const val REQ_PERMS = 1
-                  private const val DEAD_ZONE = 0.02f      // rad/s : ignore les micro-tremblements
+                  private const val GYRO_DEAD_ZONE = 0.02f    // rad/s
+                  private const val PIXELS_PER_METER = 300f   // multiplié par la vitesse choisie
+                  private const val SEND_INTERVAL_NS = 8_000_000L
               }
 
               private lateinit var mouse: BluetoothMouse
               private lateinit var sensorManager: SensorManager
               private var gyro: Sensor? = null
+              private var accel: Sensor? = null
+              private val tracker = TableTracker()
 
               private lateinit var status: TextView
+              private lateinit var hint: TextView
+              private lateinit var settingsPanel: View
               private lateinit var pauseSwitch: Switch
+              private lateinit var remoteSwitch: Switch
 
-              private var buttons = 0                // état des boutons (bitmask)
-              private var sensitivity = 40f          // réglable par le curseur
-              private var frozen = false             // doigt posé sur la zone "embrayage"
+              private val ui = Handler(Looper.getMainLooper())
+              private val hintTick = object : Runnable {
+                  override fun run() {
+                      hint.text = when {
+                          !mouse.isConnected -> "Connectez l'ordinateur avec les réglages ci-dessous."
+                          remoteSwitch.isChecked -> "Mode télécommande : tournez le poignet pour bouger le curseur."
+                          else -> when (tracker.state) {
+                              TableTracker.State.CALIBRATING -> "Posez le téléphone à plat et ne le touchez pas une seconde…"
+                              TableTracker.State.LIFTED -> "Téléphone soulevé : curseur figé. Reposez-le."
+                              else -> "Faites glisser le téléphone comme une souris.\nSoulevez-le pour le recentrer."
+                          }
+                      }
+                      ui.postDelayed(this, 200)
+                  }
+              }
+
+              private var buttons = 0
+              private var speed = 50f
               private var lastTimestamp = 0L
-              private var accX = 0f                  // restes fractionnaires pour un mouvement fluide
+              private var lastSend = 0L
+              private var accX = 0f
               private var accY = 0f
               private var lastScrollY = 0f
               private var scrollAcc = 0f
@@ -441,20 +668,30 @@ jobs:
                   window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
                   status = findViewById(R.id.status)
+                  hint = findViewById(R.id.hint)
+                  settingsPanel = findViewById(R.id.settingsPanel)
                   pauseSwitch = findViewById(R.id.pause)
+                  remoteSwitch = findViewById(R.id.remoteMode)
 
                   sensorManager = getSystemService(SensorManager::class.java)
                   gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-                  if (gyro == null) status.text = "Ce téléphone n'a pas de gyroscope."
+                  accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
                   mouse = BluetoothMouse(
                       this,
                       onStatus = { msg -> runOnUiThread { status.text = msg } },
-                      onConnectedChanged = { connected -> if (!connected) buttons = 0 },
+                      onConnectedChanged = { connected ->
+                          runOnUiThread {
+                              if (!connected) buttons = 0
+                              // Une fois connecté, on cache les réglages pour que la paume ne les touche pas
+                              settingsPanel.visibility = if (connected) View.GONE else View.VISIBLE
+                              tracker.reset()
+                          }
+                      },
                   )
 
                   setupButtons()
-                  setupSensitivity()
+                  setupSettings()
                   setupScrollZone()
 
                   if (hasPermissions()) mouse.start() else requestPermissions(requiredPermissions(), REQ_PERMS)
@@ -486,9 +723,39 @@ jobs:
               private fun setupButtons() {
                   bindMouseButton(findViewById(R.id.btnLeft), BluetoothMouse.BUTTON_LEFT)
                   bindMouseButton(findViewById(R.id.btnRight), BluetoothMouse.BUTTON_RIGHT)
+              }
+
+              /** Appui = bouton enfoncé, relâchement = bouton relâché (permet le glisser-déposer). */
+              private fun bindMouseButton(view: View, mask: Int) {
+                  view.setOnTouchListener { v, e ->
+                      when (e.actionMasked) {
+                          MotionEvent.ACTION_DOWN -> {
+                              v.isPressed = true
+                              v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                              buttons = buttons or mask
+                              mouse.send(buttons, 0, 0)
+                          }
+                          MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                              v.isPressed = false
+                              buttons = buttons and mask.inv()
+                              mouse.send(buttons, 0, 0)
+                          }
+                      }
+                      true
+                  }
+              }
+
+              private fun setupSettings() {
+                  // Appui long seulement : la paume posée dessus ne l'ouvre pas par erreur
+                  val btnSettings = findViewById<Button>(R.id.btnSettings)
+                  btnSettings.text = "⚙  Réglages (appui long)"
+                  btnSettings.setOnLongClickListener {
+                      settingsPanel.visibility =
+                          if (settingsPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                      true
+                  }
 
                   findViewById<Button>(R.id.btnVisible).setOnClickListener {
-                      // Rend le téléphone visible 2 minutes pour l'appairage depuis l'ordinateur
                       startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
                           .putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120))
                   }
@@ -506,43 +773,23 @@ jobs:
                           }
                           .show()
                   }
-              }
 
-              /** Appui = bouton enfoncé, relâchement = bouton relâché (permet le glisser-déposer). */
-              private fun bindMouseButton(view: View, mask: Int) {
-                  view.setOnTouchListener { v, e ->
-                      when (e.actionMasked) {
-                          MotionEvent.ACTION_DOWN -> {
-                              v.isPressed = true
-                              v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
-                              buttons = buttons or mask
-                              mouse.send(buttons, 0, 0)
-                          }
-                          MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                              v.isPressed = false
-                              buttons = buttons and mask.inv()
-                              mouse.send(buttons, 0, 0)
-                          }
-                      }
-                      true
-                  }
-              }
-
-              private fun setupSensitivity() {
                   val bar = findViewById<SeekBar>(R.id.sensitivity)
-                  sensitivity = 10f + bar.progress
+                  speed = 10f + bar.progress
                   bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                      override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) { sensitivity = 10f + p }
+                      override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) { speed = 10f + p }
                       override fun onStartTrackingTouch(s: SeekBar?) {}
                       override fun onStopTrackingTouch(s: SeekBar?) {}
                   })
+
+                  remoteSwitch.setOnCheckedChangeListener { _, _ -> registerSensors() }
               }
 
-              /** Doigt posé = curseur figé (comme soulever une souris). Glisser vertical = molette. */
+              /** Bande centrale = molette : glisser le doigt vers le haut / le bas. */
               private fun setupScrollZone() {
                   findViewById<View>(R.id.scrollZone).setOnTouchListener { _, e ->
                       when (e.actionMasked) {
-                          MotionEvent.ACTION_DOWN -> { frozen = true; lastScrollY = e.y; scrollAcc = 0f }
+                          MotionEvent.ACTION_DOWN -> { lastScrollY = e.y; scrollAcc = 0f }
                           MotionEvent.ACTION_MOVE -> {
                               scrollAcc += (lastScrollY - e.y) / 40f   // 40 px ≈ un cran de molette
                               lastScrollY = e.y
@@ -552,49 +799,71 @@ jobs:
                                   scrollAcc -= steps
                               }
                           }
-                          MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> frozen = false
                       }
                       true
                   }
               }
 
-              // ---------- Capteur : mouvement du téléphone -> mouvement du curseur ----------
+              // ---------- Capteurs ----------
+
+              private fun registerSensors() {
+                  sensorManager.unregisterListener(this)
+                  lastTimestamp = 0L
+                  accX = 0f; accY = 0f
+                  tracker.reset()
+                  if (remoteSwitch.isChecked) {
+                      gyro?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+                  } else {
+                      accel?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_FASTEST) }
+                  }
+              }
 
               override fun onResume() {
                   super.onResume()
-                  lastTimestamp = 0L
-                  gyro?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+                  registerSensors()
+                  if (hasPermissions()) mouse.ensureRegistered()
+                  ui.post(hintTick)
               }
 
               override fun onPause() {
                   super.onPause()
                   sensorManager.unregisterListener(this)
+                  ui.removeCallbacks(hintTick)
               }
 
               override fun onSensorChanged(event: SensorEvent) {
                   if (lastTimestamp == 0L) { lastTimestamp = event.timestamp; return }
                   val dt = (event.timestamp - lastTimestamp) / 1_000_000_000f
                   lastTimestamp = event.timestamp
-                  if (!mouse.isConnected || frozen || pauseSwitch.isChecked) { accX = 0f; accY = 0f; return }
 
-                  // Téléphone tenu en main, écran vers le haut, pointé vers l'ordinateur :
-                  //  - tourner le poignet gauche/droite (axe Z) -> curseur gauche/droite
-                  //  - incliner le haut du téléphone haut/bas (axe X) -> curseur haut/bas
-                  var rotZ = event.values[2]
-                  var rotX = event.values[0]
-                  if (abs(rotZ) < DEAD_ZONE) rotZ = 0f
-                  if (abs(rotX) < DEAD_ZONE) rotX = 0f
+                  if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                      // Le calibrage et l'anti-dérive tournent même à l'arrêt
+                      val m = tracker.update(event.values[0], event.values[1], event.values[2], dt)
+                      if (!mouse.isConnected || pauseSwitch.isChecked) { accX = 0f; accY = 0f; return }
+                      // Téléphone à plat, haut du téléphone vers l'écran :
+                      //  X du téléphone (vers la droite) -> curseur à droite
+                      //  Y du téléphone (vers le haut)   -> curseur vers le haut (Y écran négatif)
+                      accX += m[0] * PIXELS_PER_METER * speed
+                      accY += -m[1] * PIXELS_PER_METER * speed
+                  } else {
+                      if (!mouse.isConnected || pauseSwitch.isChecked) { accX = 0f; accY = 0f; return }
+                      // Mode télécommande (gyroscope)
+                      var rotZ = event.values[2]
+                      var rotX = event.values[0]
+                      if (abs(rotZ) < GYRO_DEAD_ZONE) rotZ = 0f
+                      if (abs(rotX) < GYRO_DEAD_ZONE) rotX = 0f
+                      accX += -rotZ * dt * speed * 60f
+                      accY += -rotX * dt * speed * 60f
+                  }
 
-                  // Facteur 60 : convertit des rad/s * s en pixels, multiplié par la sensibilité
-                  accX += -rotZ * dt * sensitivity * 60f
-                  accY += -rotX * dt * sensitivity * 60f
-
-                  val dx = accX.roundToInt()
-                  val dy = accY.roundToInt()
+                  if (event.timestamp - lastSend < SEND_INTERVAL_NS) return
+                  val dx = accX.roundToInt().coerceIn(-127, 127)
+                  val dy = accY.roundToInt().coerceIn(-127, 127)
                   if (dx != 0 || dy != 0) {
                       mouse.send(buttons, dx, dy)
                       accX -= dx
                       accY -= dy
+                      lastSend = event.timestamp
                   }
               }
 
@@ -611,8 +880,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-
-    
 
       - uses: gradle/actions/setup-gradle@v4
         with:
