@@ -65,6 +65,16 @@ jobs:
                   versionName = "1.0"
               }
 
+              // Clé de signature fixe : permet d'installer chaque nouvelle version par-dessus l'ancienne
+              signingConfigs {
+                  getByName("debug") {
+                      storeFile = file("pixel.keystore")
+                      storePassword = "android"
+                      keyAlias = "androiddebugkey"
+                      keyPassword = "android"
+                  }
+              }
+
               buildTypes {
                   release {
                       isMinifyEnabled = false
@@ -93,6 +103,9 @@ jobs:
               <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
               <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
                   android:usesPermissionFlags="neverForLocation" />
+
+              <!-- Lecture rapide de l'accéléromètre (mode table) -->
+              <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
               <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
               <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="true" />
@@ -814,7 +827,8 @@ jobs:
                   if (remoteSwitch.isChecked) {
                       gyro?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
                   } else {
-                      accel?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_FASTEST) }
+                      // 5000 µs = 200 mesures/s : rapide, et autorisé sur tous les Android récents
+                      accel?.let { sensorManager.registerListener(this, it, 5000) }
                   }
               }
 
@@ -875,6 +889,56 @@ jobs:
               }
           }
           PIXEL_EOF
+          cat > keystore.b64 <<'PIXEL_EOF'
+          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
+          PIXEL_EOF
+          base64 -d keystore.b64 > app/pixel.keystore
 
       - uses: actions/setup-java@v4
         with:
